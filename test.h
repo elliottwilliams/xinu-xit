@@ -54,10 +54,10 @@ typedef struct runner_s runner_state_t;
 
 // Define a suite, passing its name, an expression from SUITE_OPTIONS, and any
 // pointers to tests to include in the suite.
-#define SUITE(NAME, OPTS, ...) \
-  suite_t NAME = { .name = #NAME OPTS, \
-    .tests = { __VA_ARGS__, NULL } };
+#define SUITE(NAME, OPTS, TESTS) \
+  suite_t NAME = { .name = #NAME OPTS, .tests = TESTS };
 #define SUITE_OPTIONS(...) , ## __VA_ARGS__
+#define SUITE_TESTS(...) { __VA_ARGS__, NULL }
 
 // Declare a suite that is defined elsewhere; useful for creating a list of
 // suites to run.
@@ -67,10 +67,10 @@ typedef struct runner_s runner_state_t;
 void run_test(suite_t * suite, test_t * test, runner_state_t * state);
 void run_suite(suite_t * suite, runner_state_t * state);
 
-// The entry point to testing. Runs a null-terminated list of suites, and calls 
-// `handler` as results come in. Passing a NULL `handler` uses a default which
-// prints to stderr.
-void runner(suite_t * suites[], result_handler_f handler);
+// The entry point for local testing. Runs a null-terminated list of suites,
+// and calls `handler` as results come in. Passing a NULL `handler` uses a
+// default which prints to stderr.
+void local_runner(suite_t * suites[], result_handler_f handler);
 result_handler_f print_result;
 
 #endif
