@@ -1,5 +1,6 @@
+#include <xinu.h>
 #include <stdio.h>
-#include "test.h"
+#include <test/test.h>
 
 void run_test(suite_t * suite, test_t * test, runner_state_t * state) {
   char msgbuf[128];
