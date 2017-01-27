@@ -15,7 +15,7 @@ void run_test(suite_t * suite, test_t * test, runner_state_t * state) {
 }
 
 void run_suite(suite_t * suite, runner_state_t * state) {
-  size_t i = 0;
+  int i = 0;
   for (test_t * it = suite->tests[i];
       it != NULL;
       it = suite->tests[++i])
