@@ -56,4 +56,4 @@ test_xinu: $(TEST_UTILS_BUILD)/wrapargs $(TEST_UTIL_OBJS) xinu
 clean_tests:
 	@rm -f $(TEST_BUILD)/*.o $(TEST_UTILS_BUILD)/{testsym,wrapargs,tests.def} $(TEST_UTILS_BUILD)/*.o
 
-.PHONY: test 
+.PHONY: test test_xinu clean_tests

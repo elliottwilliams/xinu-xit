@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <test/test.h>
 
+extern test_t * all_tests[];
+
 void run_test(test_t * test, runner_state_t * state) {
   char msgbuf[128];
 
