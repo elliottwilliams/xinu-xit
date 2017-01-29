@@ -1,7 +1,9 @@
 #include <xinu.h>
 #include <stdio.h>
 #include <test/test.h>
+#include <test/fake.h>
 
+#include <tests.def> 
 extern test_t * all_tests[];
 
 void run_test(test_t * test, runner_state_t * state) {
@@ -43,6 +45,7 @@ void local_runner(test_t ** tests, result_handler_f * handler) {
   runner_state_t state = { 0, 0, handler };
   for (test_t * it = tests[i]; it != NULL; it = tests[++i]) {
     run_test(it, &state);
+    reset_fakes();
   }
 
   fprintf(stderr, "\n%d tests run, %d failed.\n", state.n_successes +

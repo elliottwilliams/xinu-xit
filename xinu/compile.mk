@@ -12,7 +12,7 @@ TEST_BIN=tests
 
 # Determine the object file paths for tests in $(TESTS).
 TEST_OBJS=$(foreach test,$(TESTS),$(test:%=tests/%.o)) 
-TEST_UTIL_OBJS = $(UTIL_BIN)/test.o 
+TEST_UTIL_OBJS = $(UTIL_BIN)/test.o $(UTIL_BIN)/fake.o
 
 # Add the test header includes to the include variable used everywhere.
 INCLUDE += -I$(TOPDIR)/test/include
@@ -21,7 +21,7 @@ INCLUDE += -I$(TOPDIR)/test/include
 $(TEST_BIN)/%.o: $(TEST_SRC)/%.c
 	$(CC) $(CFLAGS) -o $(TEST_BIN)/$*.o $(TEST_SRC)/$*.c
 $(UTIL_BIN)/%.o: $(UTIL_SRC)/%.c $(UTIL_BIN)/tests.def
-	$(CC) $(CFLAGS) -include $(UTIL_BIN)/tests.def -o $(UTIL_BIN)/$*.o $(UTIL_SRC)/$*.c
+	$(CC) $(CFLAGS) -I $(UTIL_BIN) -o $(UTIL_BIN)/$*.o $(UTIL_SRC)/$*.c
 
 # Keep track of the tests included into this build of Xinu.
 $(UTIL_BIN)/testsym: $(TEST_OBJS)
