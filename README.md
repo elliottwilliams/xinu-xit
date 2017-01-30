@@ -31,7 +31,7 @@ xit is pronounced "exit" and is a portmanteau of "xinu" and "test".
 
 ## Examples
 
-See [`examples/`](tree/master/examples) for an example suite that tests
+See [`examples/`](examples) for an example suite that tests
 the behavior of the `gettime` system function.
 
 
@@ -100,7 +100,7 @@ the behavior of the `gettime` system function.
 The resulting `xinu.xbin` image can be used to boot up a Xinu backend as
 usual, and will run all tests specified.
 
-[wrap]: #mock_functions
+[wrap]: #mock-functions
 
 
 # Writing tests
@@ -222,7 +222,7 @@ this, fakes are centrally declared in `include/test/fake.h`, and defined in
 	 follows the same semantics as the `DECLARE` use above. See [fff's
 	 documentation][fff] for details.
 
-[use]: #using_a_faked_function
+[use]: #using-a-faked-function
 
 
 #### Using a faked function
