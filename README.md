@@ -109,7 +109,7 @@ Test suites are C source files that import the following headers:
 
 - `#include <test/test.h>` for test macros and data structures
 - `#include <test/assert.h>` for the assertion library
-- `#include <test/fake.h>` for access to mockable [fake functions][fake]
+- `#include <test/fake.h>` for access to mockable [fake functions][fff]
 
 
 ### Basic tests
@@ -202,24 +202,17 @@ this, fakes are centrally declared in `include/test/fake.h`, and defined in
 
 #### Faking a system function
 
-1. Check `include/test/fake.h` to see if the function you want to fake is
-	 already declared. For example, when faking `getutime`, look for a
-	 `DECLARE_*` macro with a parameter `__wrap_getutime`. Remember that in order
-	 to reroute function calls in the OS, you must use the `__wrap_` prefix.
+1. Add the function to `fake.h`: add a `DECLARE` macro that specifies the
+	 function's argument and return types, and the `__wrap_` prefixed name of the
+	 function being faked. See [fff's documentation][fff] for
+	 details on how to use `DECLARE` macros.
 
-	- If it's already declared, you can immediately [use it in a test][use].
-
-2. Add the function to `fake.h`: add a `DECLARE` macro that specifies the
-	 function's argument and return types, and the name of the function being
-	 faked (use the `__wrap_` prefixed name). See [fff's documentation][fff] for
-	 details.
-
-3. Add the fuction's wrapped name to the `APPLY_FAKES_LIST` macro. This macro
+2. Add the fuction's wrapped name to the `APPLY_FAKES_LIST` macro. This macro
 	 is used calls functions for every defined fake. It's used by the
 	 `reset_fakes` function to sanitize the fake infrastructure between tests.
 
-4. Define the function using a `DEFINE` macro in `xinu/fake.c`. This macro
-	 follows the same semantics as the `DECLARE` use above. See [fff's
+3. Define the function using a `DEFINE` macro in `xinu/fake.c`. This macro
+	 follows the same semantics as the `DECLARE` use above. Again, see [fff's
 	 documentation][fff] for details.
 
 [use]: #using-a-faked-function
@@ -232,4 +225,4 @@ this, fakes are centrally declared in `include/test/fake.h`, and defined in
 2. In a test case, call a function which calls the function being faked.
 
 3. Inspect the call history of the fake function by looking at its `_fake`
-	 struct. See [fff's documentation] for details.
+	 struct. See [fff's documentation][fff] for details.
