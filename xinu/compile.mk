@@ -3,10 +3,15 @@
 #     -include ../test/xinu/Makefile
 # Then, to run tests, `make test`.
 
-UTIL_SRC := ../test/xinu
-UTIL_BIN := tests/utils
-TEST_SRC := ../tests
-TEST_BIN := tests
+UTIL_SRC    := ../test/xinu
+TEST_SRC    := ../tests
+SRC_CONFIG  := ../test/config
+SRC_INCLUDE := ../test/include
+
+GEN_BASE    := tests
+TEST_BIN    := $(GEN_BASE)
+UTIL_BIN    := $(GEN_BASE)/utils
+GEN_INCLUDE := $(GEN_BASE)/include
 
 # Get suite names from c files in TEST_SRC. To only compile certain suites,
 # modify this from the command line, e.g. `make test TESTS=test_netin`.
@@ -19,17 +24,20 @@ TEST_OBJS = $(foreach test,$(TESTS),$(test:%=tests/%.o))
 TEST_UTIL_OBJS = $(UTIL_BIN)/test.o $(UTIL_BIN)/fake.o
 
 # Add the test header includes to the include variable used everywhere.
-INCLUDE += -I$(TOPDIR)/test/include
+INCLUDE += -I$(SRC_INCLUDE) -I$(GEN_INCLUDE)
 
 # The main target for running tests. 
-test: $(CONFH) $(TEST_OBJS) test_xinu
+test: test_dirs $(CONFH) $(TEST_OBJS) test_xinu
 	@echo Build includes suites: $(TESTS)
 
+test_dirs:
+	@mkdir -p $(TEST_BIN) $(UTIL_BIN) $(GEN_INCLUDE)/test
+
 # Rules to compile test utils and the tests themselves.
-$(TEST_BIN)/%.o: $(TEST_SRC)/%.c
-	$(CC) $(CFLAGS) -o $(TEST_BIN)/$*.o $(TEST_SRC)/$*.c
-$(UTIL_BIN)/%.o: $(UTIL_SRC)/%.c $(UTIL_BIN)/tests.def
-	$(CC) $(CFLAGS) -I $(UTIL_BIN) -o $(UTIL_BIN)/$*.o $(UTIL_SRC)/$*.c
+$(TEST_BIN)/%.o: $(TEST_SRC)/%.c $(GEN_INCLUDE)/test/fakes.def
+	$(CC) $(CFLAGS) -o $@ $<
+$(UTIL_BIN)/%.o: $(UTIL_SRC)/%.c $(GEN_INCLUDE)/test/tests.def $(GEN_INCLUDE)/test/fakes.def
+	$(CC) $(CFLAGS) -o $@ $<
 
 # Keep track of the tests included into this build of Xinu.
 $(UTIL_BIN)/testsym: $(TEST_OBJS)
@@ -42,20 +50,21 @@ $(UTIL_BIN)/testutilsym: $(TEST_UTIL_OBJS)
 
 # Generate command line arguments for ld that wrap functions mocked in tests
 # and test utils.
-$(UTIL_BIN)/wrapargs: $(UTIL_BIN)/testsym $(UTIL_BIN)/testutilsym
-	@cat $(UTIL_BIN)/testsym $(UTIL_BIN)/testutilsym \
-		| sed -n 's/^__wrap_\(.*\)/--wrap=\1/p' > $(UTIL_BIN)/wrapargs
+$(UTIL_BIN)/wrapargs: $(GEN_INCLUDE)/test/fakes.def
+	@cat $? | sed -n 's/.*__wrap_\([[:alnum:]_]\+\).*/--wrap=\1/p' > $@
 
 # Generate a header that declares all tests in this build. It will be included
 # in all objects in UTIL_BIN.
-$(UTIL_BIN)/tests.def: $(UTIL_BIN)/testsym
-	@echo 'struct test_s;' > $(UTIL_BIN)/tests.def
+$(GEN_INCLUDE)/test/tests.def: $(UTIL_BIN)/testsym
+	@echo 'struct test_s;' > $@
 	@cat $(UTIL_BIN)/testsym | sed -n 's/^\(test_.*\)/extern struct test_s \1;/p' \
-		>> $(UTIL_BIN)/tests.def
-	@echo 'struct test_s * all_tests[] = {' >> $(UTIL_BIN)/tests.def
-	@cat $(UTIL_BIN)/testsym | sed -n 's/^\(test_.*\)/\&\1, /p' \
-		>> $(UTIL_BIN)/tests.def
-	@echo '(struct test_s *) 0};' >> $(UTIL_BIN)/tests.def
+		>> $@
+	@echo 'struct test_s * all_tests[] = {' >> $@
+	@cat $(UTIL_BIN)/testsym | sed -n 's/^\(test_.*\)/\&\1, /p' >> $@
+	@echo '(struct test_s *) 0};' >> $@
+
+$(GEN_INCLUDE)/test/fakes.def: $(SRC_CONFIG)/fakes.def.h
+	@cp $? $@
 
 # Find the real names of any wrapped functions (see ld(1)) defined in a test
 # object.
@@ -67,6 +76,6 @@ test_xinu: LDFLAGS += @$(UTIL_BIN)/wrapargs
 test_xinu: $(UTIL_BIN)/wrapargs $(TEST_UTIL_OBJS) xinu 
 
 clean_tests:
-	@rm -f $(TEST_BIN)/*.o $(UTIL_BIN)/{testsym,testutilsym,wrapargs,tests.def} $(UTIL_BIN)/*.o
+	@rm -rf $(GEN_BASE)/* 
 
-.PHONY: test test_xinu clean_tests
+.PHONY: test test_dirs test_xinu clean_tests

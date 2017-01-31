@@ -3,7 +3,7 @@
 #include <test/test.h>
 #include <test/fake.h>
 
-#include <tests.def> 
+#include <test/tests.def> 
 extern test_t * all_tests[];
 
 void run_test(test_t * test, runner_state_t * state) {
