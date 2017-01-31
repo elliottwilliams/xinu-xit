@@ -179,22 +179,23 @@ and `xinu/fake.c`.
 
 #### Background
 
-xit uses [fff][fff], a C microframework for creating "fake functions", which return
-stubbed values and invoke handlers set at runtime, and keep track of calls
-made. It combines this library with ld wraps: linker options which rewrite
-all references for a symbol *fn* to *__wrap_fn*. This allows function calls
-within the Xinu source code to be rerouted at link time.
+xit uses [fff][fff], a C microframework for creating "fake functions", which
+return stubbed values and invoke handlers set at runtime, and keep track of
+calls made. It combines this library with ld wraps: linker options which
+rewrite all references for a symbol *fn* to *__wrap_fn*. This allows function
+calls within the Xinu source code to be rerouted at link time.
 
-xit's approach is to create "fakes" of `__wrap_` functions using fff. Its makefile
-discovers all `__wrap_` symbols declared in tests, and automatically passes the
-proper wrap option to ld. Then, calls in Xinu to a function `function_name` get
-linked to the wrap function `__wrap_function_name`, which in turn stores its
-metadata in an [fff struct][fake], `__wrap_function_name_fake`.
+xit's approach is to create "fakes" of `__wrap_` functions using fff. Its
+makefile discovers all `__wrap_` symbols declared in tests, and automatically
+passes the proper wrap option to ld. Then, calls in Xinu to a function
+`function_name` get linked to the wrap function `__wrap_function_name`, which
+in turn stores its metadata in an [fff struct][fake],
+`__wrap_function_name_fake`.
 
 One caveat to this approach is that (since wrapping a function involves the
 linker) a function can only be faked once in the entire codebase. Because of
-this, fakes are centrally declared in `include/test/fake.h`, and defined in
-`xinu/fake.c`. The following sections describe how to add and use fakes.
+this, fakes are centrally declared in `config/fakes.def.h`. The following
+sections describe how to add and use fakes.
 
 [fff]: https://github.com/meekrosoft/fff
 [fake]: https://github.com/meekrosoft/fff#hello-fake-world
@@ -202,27 +203,21 @@ this, fakes are centrally declared in `include/test/fake.h`, and defined in
 
 #### Faking a system function
 
-1. Add the function to `fake.h`: add a `DECLARE` macro that specifies the
-	 function's argument and return types, and the `__wrap_` prefixed name of the
-	 function being faked. See [fff's documentation][fff] for
-	 details on how to use `DECLARE` macros.
-
-2. Add the fuction's wrapped name to the `APPLY_FAKES_LIST` macro. This macro
-	 is used calls functions for every defined fake. It's used by the
-	 `reset_fakes` function to sanitize the fake infrastructure between tests.
-
-3. Define the function using a `DEFINE` macro in `xinu/fake.c`. This macro
-	 follows the same semantics as the `DECLARE` use above. Again, see [fff's
-	 documentation][fff] for details.
+Add the function and its signature to `config/fakes.def.h`. See the
+documentation and example in that file. The format for both VALUE and VOID
+functions follows [fff's syntax][fff_cheat].
 
 [use]: #using-a-faked-function
+[fff_cheat]: https://github.com/meekrosoft/fff#cheat-sheet
 
 
 #### Using a faked function
 
 1. Ensure your test suite includes `<test/fake.h>`.
 
-2. In a test case, call a function which calls the function being faked.
+2. In a test case, call a function which calls the function being faked. The
+   fake function will be used automatically.
 
 3. Inspect the call history of the fake function by looking at its `_fake`
-	 struct. See [fff's documentation][fff] for details.
+   struct. For example, the if `__wrap_ip6in` is faked, it's struct is
+   `__wrap_ip6in_fake`. See [fff's documentation][fff] for details.
