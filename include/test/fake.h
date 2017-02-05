@@ -7,23 +7,22 @@
 // Reset fakes between tests. Called by `local_runner` after each test.
 void reset_fakes();
 
-/**
-  Declare fakes here by adding a declaration macro, and adding them to the
-  APPLY_FAKES_LIST macro. Then, define them with DEFINE_FAKE_* macros in fake.c.
-
-  Semantics: FAKE_VOID_FUNC(name, arguments...)
-             FAKE_VALUE_FUNC(return_type, name, arguments...)
-*/
-
-
-#define APPLY_FAKES_LIST(FN) \
-  FAKE_VALUE_FUNCTION_LIST(FN) \
-  FAKE_VOID_FUNCTION_LIST(FN)
-
-#define RESET_VALUE_FAKE(TYPE, NAME, ...) \
-  RESET_FAKE(NAME)
-#define RESET_VOID_FAKE(NAME, ...) \
+#define XIT_RESET(NAME, ...) \
   RESET_FAKE(NAME)
 
-FAKE_VALUE_FUNCTION_LIST(DECLARE_FAKE_VALUE_FUNC);
-FAKE_VOID_FUNCTION_LIST(DECLARE_FAKE_VOID_FUNC);
+#define XIT_DECL_VALUE_FAKE(NAME, PROXY, TYPE, ...) \
+  TYPE PROXY(__VA_ARGS__); \
+  DECLARE_FAKE_VALUE_FUNC(TYPE, NAME, __VA_ARGS__)
+#define XIT_DECL_VOID_FAKE(NAME, PROXY, ...) \
+  void PROXY(__VA_ARGS__); \
+  DECLARE_FAKE_VOID_FUNC(NAME, __VA_ARGS__)
+
+#define XIT_DEFN_VALUE_FAKE(NAME, PROXY, TYPE, ...) \
+  DEFINE_FAKE_VALUE_FUNC(TYPE, NAME, __VA_ARGS__); \
+  NAME##_Fake NAME##_fake = { .custom_fake = PROXY };
+#define XIT_DEFN_VOID_FAKE(NAME, PROXY, ...) \
+  DEFINE_FAKE_VOID_FUNC(NAME, __VA_ARGS__); \
+  NAME##_Fake NAME##_fake = { .custom_fake = PROXY };
+
+XIT_VALUE_FAKES(XIT_DECL_VALUE_FAKE);
+XIT_VOID_FAKES(XIT_DECL_VOID_FAKE);

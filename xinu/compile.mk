@@ -44,14 +44,10 @@ $(UTIL_BIN)/testsym: $(TEST_OBJS)
 	@find $(TEST_BIN) -name \*.o -exec nm {} -g \; | awk 'NF>=3 {print $$3}' \
 		| sort | uniq > $(UTIL_BIN)/testsym
 
-$(UTIL_BIN)/testutilsym: $(TEST_UTIL_OBJS)
-	@find $(UTIL_BIN) -name \*.o -exec nm {} -g \; | awk 'NF>=3 {print $$3}' \
-		| sort | uniq > $(UTIL_BIN)/testutilsym
-
 # Generate command line arguments for ld that wrap functions mocked in tests
 # and test utils.
-$(UTIL_BIN)/wrapargs: $(GEN_INCLUDE)/test/fakes.def
-	@cat $? | sed -n 's/.*__wrap_\([[:alnum:]_]\+\).*/--wrap=\1/p' > $@
+$(UTIL_BIN)/wrapargs: $(UTIL_BIN)/fake.o
+	@nm $< -g | sed -n 's/.*__wrap_\([[:alnum:]_]\+\).*/--wrap=\1/p' > $@
 
 # Generate a header that declares all tests in this build. It will be included
 # in all objects in UTIL_BIN.

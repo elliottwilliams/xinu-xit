@@ -1,23 +1,25 @@
 /**
  * Add the signatures of functions to mock here. 
  *
- * For functions that return a value, use FAKE_VALUE_FUNCTIONS.
+ * For functions that return a value, use XIT_VALUE_FAKES.
  * Semantics are:
- *    F(<return type>, <function name>, <arg1 type>, <arg2 type>, ...)
+ *    F(<wrapped function name>, <proxy function name>, <return type>,
+ *      <arg1 type>, <arg2 type>, ...)
  *
  * Example:
  *
- *    #define FAKE_VALUE_FUNCTION_LIST(F) \
- *      F(status, __wrap_getutime, uint32 *);
+ *    #define XIT_VALUE_FAKES(F) \
+ *      F(__wrap_getutime, __real_getutime, status, uint32 *);
  *
- * For void functions, use FAKE_VOID_FUNCTIONS.
+ * For void functions, use XIT_VOID_FAKES.
  * Semantics are:
- *    F(<function name, <arg1 type>, <arg2 type>, ...)
+ *    F(<wrapped function name>, <proxy function name>, <arg1 type>,
+ *      <arg2 type>, ...)
  *
  * Example:
  *
- *    #define FAKE_VOID_FUNCTION_LIST(F) \
- *      F(__wrap_ip6in, struct netpacket *, struct ip6packet *);
+ *    #define XIT_VOID_FAKES(F) \
+ *      F(__wrap_ip6in, __real_ip6in, struct netpacket *, struct ip6packet *);
  *
  * Functions listed here get declared as wrappers in `fake.h`. They produce
  * metadata structures `<function_name>_fake`, which contain information about
@@ -26,8 +28,13 @@
  * See fff's documentation for details: <https://github.com/meekrosoft/fff>
  */
 
-#define FAKE_VALUE_FUNCTION_LIST(F) \
+#define XIT_VALUE_FAKES(F) \
+  F(__wrap_getutime, __real_getutime, status, uint32 *); \
+  F(__wrap_freebuf,  __real_freebuf,  syscall, char *); \
   ;
 
-#define FAKE_VOID_FUNCTION_LIST(F) \
+#define XIT_VOID_FAKES(F) \
+  F(__wrap_icmp6in,  __real_icmp6in,  struct netpacket *, struct ip6packet *, struct icmp6msg *); \
+  F(__wrap_ip6_hton, __real_ip6_hton, struct ip6packet *); \
+  F(__wrap_ip6_ntoh, __real_ip6_ntoh, struct ip6packet *); \
   ;
