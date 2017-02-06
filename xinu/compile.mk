@@ -27,7 +27,7 @@ TEST_UTIL_OBJS = $(UTIL_BIN)/test.o $(UTIL_BIN)/fake.o
 INCLUDE += -I$(SRC_INCLUDE) -I$(GEN_INCLUDE)
 
 # The main target for running tests. 
-test: test_dirs $(CONFH) $(TEST_OBJS) test_xinu
+test: pre_clean test_dirs $(CONFH) $(TEST_OBJS) test_xinu
 	@echo Build includes suites: $(TESTS)
 
 test_dirs:
@@ -45,7 +45,8 @@ $(UTIL_BIN)/testsym: $(TEST_OBJS)
 		| sort | uniq > $(UTIL_BIN)/testsym
 
 # Generate command line arguments for ld that wrap functions mocked in tests
-# and test utils.
+# and test utils. Clean the build, since the OS needs to be relinked to use
+# wraps.
 $(UTIL_BIN)/wrapargs: $(UTIL_BIN)/fake.o
 	@nm $< -g | sed -n 's/.*__wrap_\([[:alnum:]_]\+\).*/--wrap=\1/p' > $@
 
@@ -69,9 +70,17 @@ test_xinu: TEST_DECLARATIONS = $(TEST_FNS:%=extern test_t test_%;)
 test_xinu: CFLAGS += -DTESTS_ENABLED
 test_xinu: OBJ_FILES += $(TEST_OBJS) $(TEST_UTIL_OBJS)
 test_xinu: LDFLAGS += @$(UTIL_BIN)/wrapargs
-test_xinu: $(UTIL_BIN)/wrapargs $(TEST_UTIL_OBJS) xinu 
+test_xinu: $(UTIL_BIN)/wrapargs $(TEST_UTIL_OBJS) test_touch_main xinu 
+
+test_touch_main:
+	@touch ../system/main.c
 
 clean_tests:
 	@rm -rf $(GEN_BASE)/* 
 
-.PHONY: test test_dirs test_xinu clean_tests
+pre_clean:
+	@make clean
+	@rm -rf $(UTIL_BIN) $(GEN_INCLUDE)
+
+
+.PHONY: test test_dirs test_xinu clean_tests pre_clean test_touch_main 

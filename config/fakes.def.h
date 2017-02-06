@@ -29,7 +29,6 @@
  */
 
 #define XIT_VALUE_FAKES(F) \
-  F(__wrap_getutime, __real_getutime, status, uint32 *); \
   F(__wrap_freebuf,  __real_freebuf,  syscall, char *); \
   ;
 

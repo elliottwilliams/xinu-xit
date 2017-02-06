@@ -22,7 +22,7 @@
   if ((lhs) != (rhs)) {                                                                                    \
     _AS_FAIL;                                                                                              \
     _as_bprintf(                                                                                           \
-        _AS_LPAD _AS_FAILURE_MESSAGE_PRE "assert_str_eq(" #lhs ", " #rhs ")\n\n"                           \
+        _AS_LPAD _AS_FAILURE_MESSAGE_PRE "assert_eq_fmt(" #lhs ", " #rhs ", " #fmt ")\n\n"                 \
         _AS_LPAD "Expected: " fmt "\n"                                                                     \
         _AS_LPAD "     Got: " fmt "\n",                                                                    \
         __FILE__, __LINE__, (rhs), (lhs));                                                                 \

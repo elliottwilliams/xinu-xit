@@ -55,7 +55,7 @@ typedef struct runner_s runner_state_t;
 #define TEST(NAME)                TEST_BEFORE_AFTER(NAME, NULL, NULL)
 
 // Functions called by the test runner.
-void run_test(test_t * test, runner_state_t * state);
+process run_test(test_t * test, runner_state_t * state, pid32 parent);
 
 // The entry point for local testing. Runs a null-terminated list of tests,
 // and calls `handler` as results come in. Passing a NULL `handler` uses a

@@ -6,8 +6,11 @@
 #include <test/tests.def> 
 extern test_t * all_tests[];
 
-void run_test(test_t * test, runner_state_t * state) {
-  char msgbuf[128];
+process run_test(test_t * test, runner_state_t * state, pid32 parent) {
+  char * msgbuf = getmem(8196);
+  if (msgbuf == (char *) SYSERR) {
+    return SYSERR;
+  }
 
   // TODO - set timeout and handle
   if (test->before)
@@ -20,18 +23,19 @@ void run_test(test_t * test, runner_state_t * state) {
   test->time_ms = time;
 
   state->handler(test, state, msgbuf);
+  freemem(msgbuf, 8196);
+  send(parent, 0);
+  return OK;
 }
 
-void print_result(test_t * test, runner_state_t * state,
-    char * msg)
-{
+void print_result(test_t * test, runner_state_t * state, char * msg) {
   switch (test->result.status) {
     case SUCCESS:
-      fprintf(stderr, ".");
+      kprintf(".");
       state->n_successes++;
       break;
     case FAILURE:
-      fprintf(stderr, "\n%2d) %s failed:\n%s\n", ++state->n_failures,
+      kprintf("\n%2d) %s failed:\n%s\n", ++state->n_failures,
           test->name, msg);
       break;
   }
@@ -44,11 +48,14 @@ void local_runner(test_t ** tests, result_handler_f * handler) {
   int i = 0;
   runner_state_t state = { 0, 0, handler };
   for (test_t * it = tests[i]; it != NULL; it = tests[++i]) {
-    run_test(it, &state);
+    resume(create(run_test, INITSTK, INITPRIO, (char *) it->name, 3, it,
+                  &state, currpid));
+    // TODO - use recvtime to handle tests that hang
+    receive();
     reset_fakes();
   }
 
-  fprintf(stderr, "\n%d tests run, %d failed.\n", state.n_successes +
+  kprintf("\n%d tests run, %d failed.\n", state.n_successes +
       state.n_failures, state.n_failures);
 }
 
