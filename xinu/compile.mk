@@ -35,6 +35,7 @@ test_dirs:
 
 # Rules to compile test utils and the tests themselves.
 $(TEST_BIN)/%.o: $(TEST_SRC)/%.c $(GEN_INCLUDE)/test/fakes.def
+	@mkdir -p "$(TEST_BIN)/$(shell dirname $<)"
 	$(CC) $(CFLAGS) -o $@ $<
 $(UTIL_BIN)/%.o: $(UTIL_SRC)/%.c $(GEN_INCLUDE)/test/tests.def $(GEN_INCLUDE)/test/fakes.def
 	$(CC) $(CFLAGS) -o $@ $<
