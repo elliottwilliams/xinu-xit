@@ -23,21 +23,21 @@ static status getutime_er_fake(uint32 * _) {
 
 TEST(gettime_converts_utc_to_local) {
   // Given a working time server
-  FAKE(getutime).custom_fake = getutime_ok_fake;
+  __wrap_getutime_fake.custom_fake = getutime_ok_fake;
 
   // When gettime is called with a result pointer
   uint32 time;
   status retval = gettime(&time);
 
   // It should call getutime and offset the result to EST
-  assert_eq(FAKE(getutime).call_count, 1);
+  assert_eq(__wrap_getutime_fake.call_count, 1);
   assert_eq(time, demo_time - (ZONE_EST * SECPERHR));
   assert_eq(retval, OK);
 }
 
 TEST(gettime_forwards_syserr) {
   // Given a disconnected time server
-  FAKE(getutime).custom_fake = getutime_er_fake;
+  __wrap_getutime_fake.custom_fake = getutime_er_fake;
 
   // When gettime is called with a result pointer
   uint32 time = 0;
