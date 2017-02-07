@@ -6,22 +6,26 @@ following functionality:
 
 - [x] Organization of tests into suites and test cases.
 - [x] Assertions for different data types, with useful, customizable, error
-	reporting.
+  reporting.
 - [x] System function mocking through the [fff][fff] library.
 - [x] Cleanup and teardown functions per-test.
 - [x] Automatic discovery, compilation, and declaration of tests.
 - [x] Integration into the Xinu compilation infrastructure. (`make test` is all
-	you need!)
+  you need!)
 
 Features slated for development:
 
+- [ ] Test preconditions. This enables a way of determining if certain tests
+  should run. For CS 636, the class I wrote xit for, I'll be able to use
+  preconditions to exclude some non-router tests from router hosts, and vice
+  versa.
 - [ ] Network-based distributed testing. Using infrastructure of the [xinu
-	lab][lab], xit will be able to spin up multiple Xinu backends and run a
-	coordinated sequence of tests across them.  This should be useful for
-	integration testing, where behavior of the entire networking stack is
-	observed.
+  lab][lab], xit will be able to spin up multiple Xinu backends and run a
+  coordinated sequence of tests across them.  This should be useful for
+  integration testing, where behavior of the entire networking stack is
+  observed.
 - [ ] Time measurement. xit will keep track of how long tests run, and kill
-	tests that take too long.
+  tests that take too long.
 
 xit is pronounced "exit" and is a portmanteau of "xinu" and "test".
 
@@ -38,64 +42,64 @@ the behavior of the `gettime` system function.
 ## Installation
 
 1. Clone this repository into your Xinu source tree. (I use a directory
-	 `test/`, but anywhere is sufficient.) Use a submodule to keep track of your
-	 xit version within your Xinu repo:
+   `test/`, but anywhere is sufficient.) Use a submodule to keep track of your
+   xit version within your Xinu repo:
 
-	```sh
-	git submodule add https://github.com/elliottwilliams/cs636_test.git test
-	```
+  ```sh
+  git submodule add https://github.com/elliottwilliams/cs636_test.git test
+  ```
 
 2. Include xit's makefile extension into Xinu's `Makefile`. Add this to the
-	 bottom of `compile/Makefile` (substitute the directory xit is cloned
-	 into):
+   bottom of `compile/Makefile` (substitute the directory xit is cloned
+   into):
 
-	```make
-	-include ../test/xinu/compile.mk
-	```
+  ```make
+  -include ../test/xinu/compile.mk
+  ```
 
 3. Edit your `main.c` code to start a test runner on startup, like this:
 
-	```c
-	#include <xinu.h>
+  ```c
+  #include <xinu.h>
 
-	// Add these lines near the top of the file:
-	#ifdef TESTS_ENABLED
-	#include <test/test.h>
-	#endif
+  // Add these lines near the top of the file:
+  #ifdef TESTS_ENABLED
+  #include <test/test.h>
+  #endif
 
-	// ...
-	process main(void)
-	{
-		// Add these lines to main():
-	#ifdef TESTS_ENABLED
-		resume(create(local_test_runner, INITSTK, INITPRIO, "local_test_runner",
-		0));
-		return OK;
-	#endif
+  // ...
+  process main(void)
+  {
+    // Add these lines to main():
+  #ifdef TESTS_ENABLED
+    resume(create(local_test_runner, INITSTK, INITPRIO, "local_test_runner",
+    0));
+    return OK;
+  #endif
 
-		// ...
-	}
-	```
+    // ...
+  }
+  ```
 
 4. Create a `tests/` directory in the root of your source tree, and write tests
-	 in it. See the section on writing tests below. 
+   in it. See the section on writing tests below. 
 
 
 # Running tests
 
 1. Compile Xinu with tests enabled by running `make test` from the `compile/`
-	 directory. This will discover test functions in `tests/`, compile them,
-	 and link to the rest of the xinu codebase. Mock functions declared as
-	 [wraps][wrap] will be discovered automatically by the linker.
+   directory. This will discover test functions in `tests/`, compile them,
+   and link to the rest of the xinu codebase. Mock functions declared as
+   [wraps][wrap] will be discovered automatically by the linker.
 
 2. To run only a subset of your tests, pass a `TESTS` variable containing
-	 space-separated suite names to `make`. Suite names correspond to the names
-	 of test files without their extension. For example, `tests/test_netin.c` has a
-	 suite name of `test_netin`, and could be selected by running:
+   space-separated suite names to `make`. Suite names correspond to the names
+   of test files without their extension. For example, `tests/test_netin.c` has a
+   suite name of `test_netin`, and could be selected by running:
 
-	 ```sh
-	 make test TESTS="test_netin"
-	 ```
+   ```sh
+   make test TESTS="test_netin"
+   ```
 
 The resulting `xinu.xbin` image can be used to boot up a Xinu backend as
 usual, and will run all tests specified.
@@ -109,8 +113,9 @@ Test suites are C source files that import the following headers:
 
 - `#include <test/test.h>` for test macros and data structures
 - `#include <test/assert.h>` for the assertion library
-- `#include <test/fake.h>` for access to mockable [fake functions][fff]
+- `#include <test/fake.h>` for access to [defined mock functions][mock]
 
+[mock]: #mock_functions
 
 ### Basic tests
 
@@ -138,16 +143,21 @@ below.
 
 [assertions]: #assertions
 
-### Before and after functions
+####  Test options
 
-Variants of the `TEST` macro accept functions that are run before or after a
-test case. This allows for setup/teardown functions to be shared across
-multiple cases:
+The second parameter of the `TEST` macro specifies options, passed in
+[structure initializer syntax][gcc-init].
 
-- `TEST_BEFORE(test_name, before_fn) { /* ... */ }`
-- `TEST_AFTER(test_name, after_fn) { /* ... */ }`
-- `TEST_BEFORE_AFTER(test_name, before_fn, after_fn) { /* ... */ }`
+The currently supported options are:
 
+- **_`before`_**  
+  `TEST(test_name, .before = before_fn) { /* ... */ }`  
+  Run `before_fn` in the same process, immediately before the test procedure.
+- **_`after`_**  
+  `TEST(test_name, .after = after_fn) { /* ... */ }`  
+  Run `after_fn` in the same process, immediately after the test procedure.
+
+[gcc-init]: https://gcc.gnu.org/onlinedocs/gcc/Designated-Inits.html
 
 ### Assertions
 
@@ -158,7 +168,7 @@ The `test/assert.h` header defines the following assertion macros:
 - **_`assert_eq(lhs, rhs)`_**  
   Passes if `lhs == rhs`.
 - **_`assert_eq_fmt(lhs, rhs, fmt)`_**  
-	Passes if `lhs == rhs`. Uses format string `fmt` to generate a failure
+  Passes if `lhs == rhs`. Uses format string `fmt` to generate a failure
   message.
 - **_`assert_str_eq(lhs, rhs)`_**  
   Passes if `lhs` and `rhs` are determined equivalent by `strcmp`.
@@ -167,35 +177,38 @@ The `test/assert.h` header defines the following assertion macros:
 - **_`assert_mem_eq(expected, actual, size)`_**  
   Passes if the first `size` bytes of `expected` and `actual` are equivalent. 
     - The failure message for this assertion depends on hex dump functions I've
-    	not implemented yet.
+      not implemented yet.
 
 
 ### Mock functions
 
-xit allows functions called within the OS to be stubbed and monitored at
+xit allows functions called within the OS to be monitored and overridden at
 runtime. To see these "fake functions" in action, look at
-`examples/test_gettime.c`, and see their definitions in `include/test/fake.h`
-and `xinu/fake.c`.
+`examples/test_gettime.c`, and see their listing in `config/fakes.def.h`.
 
 #### Background
 
 xit uses [fff][fff], a C microframework for creating "fake functions", which
-return stubbed values and invoke handlers set at runtime, and keep track of
-calls made. It combines this library with ld wraps: linker options which
-rewrite all references for a symbol *fn* to *__wrap_fn*. This allows function
-calls within the Xinu source code to be rerouted at link time.
+record information about calls made to them. It combines this library with ld(8) wraps, which
+rewrite all references for a symbol *fn* to *__wrap_fn* at link time. 
 
-xit's approach is to create "fakes" of `__wrap_` functions using fff. Its
-makefile discovers all `__wrap_` symbols declared in tests, and automatically
-passes the proper wrap option to ld. Then, calls in Xinu to a function
-`function_name` get linked to the wrap function `__wrap_function_name`, which
-in turn stores its metadata in an [fff struct][fake],
-`__wrap_function_name_fake`.
+xit mocks functions defined in `config/fakes.def.h`. For example, for the line:
 
-One caveat to this approach is that (since wrapping a function involves the
-linker) a function can only be faked once in the entire codebase. Because of
-this, fakes are centrally declared in `config/fakes.def.h`. The following
-sections describe how to add and use fakes.
+    F(__wrap_icmp6in,  __real_icmp6in,  struct netpacket *, struct ip6packet *, struct icmp6msg *); \
+
+xit will:
+
+- Create a structure `__wrap_icmp6in_fake`, which records calls made to
+  `__wrap_icmp6in`. The schema of this structure is given in 
+  [fff's documentation][fake].
+- Create a function `__wrap_icmp6in` that updates the `__wrap_icmp6in_fake`
+  struct when called.
+- Proxy calls to `__wrap_icmp6in` to `__real_icmp6in`. This allows fakes to be
+  defined without affecting OS behavior. To proxy to a different function,
+  overwrite `__wrap_icmp6in_fake.custom_fake` in a test.
+  - Due to ld(8) wrapping, `__real_NAME` references the original symbol
+    wrapped. So if `icmp6in` is wrapped, references in code to `icmp6in` go to
+    `__wrap_icmp6in`, but `__real_icmp6in` goes to the original symbol.
 
 [fff]: https://github.com/meekrosoft/fff
 [fake]: https://github.com/meekrosoft/fff#hello-fake-world
@@ -204,11 +217,7 @@ sections describe how to add and use fakes.
 #### Faking a system function
 
 Add the function and its signature to `config/fakes.def.h`. See the
-documentation and example in that file. The format for both VALUE and VOID
-functions follows [fff's syntax][fff_cheat].
-
-[use]: #using-a-faked-function
-[fff_cheat]: https://github.com/meekrosoft/fff#cheat-sheet
+documentation and example in that file. 
 
 
 #### Using a faked function

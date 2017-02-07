@@ -46,13 +46,10 @@ typedef struct runner_s runner_state_t;
 
 // Declare and define a test function, optionally specifying before and after
 // functions.
-#define TEST_BEFORE_AFTER(NAME, BEFORE, AFTER) \
+#define TEST(NAME, ...) \
   TEST_DECL(NAME) = { .name = #NAME, .suite = __FILE__, .fn = TEST_F(NAME), \
-    .before = BEFORE, .after = AFTER }; \
+    __VA_ARGS__ }; \
   void TEST_F(NAME) (result_t * _test_res, char * _msgbuf)
-#define TEST_BEFORE(NAME, BEFORE) TEST_BEFORE_AFTER(NAME, BEFORE, NULL)
-#define TEST_AFTER(NAME, AFTER)   TEST_BEFORE_AFTER(NAME, NULL, AFTER)
-#define TEST(NAME)                TEST_BEFORE_AFTER(NAME, NULL, NULL)
 
 // Functions called by the test runner.
 process run_test(test_t * test, runner_state_t * state, pid32 parent);
