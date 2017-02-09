@@ -49,6 +49,3 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-
-# Project-specific
-config/fakes.def.h

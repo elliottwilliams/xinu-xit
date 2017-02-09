@@ -5,7 +5,7 @@
 
 UTIL_SRC    := ../test/xinu
 TEST_SRC    := ../tests
-SRC_CONFIG  := ../test/config
+SRC_CONFIG  := ../tests/config
 SRC_INCLUDE := ../test/include
 
 GEN_BASE    := tests
@@ -27,11 +27,11 @@ TEST_UTIL_OBJS = $(UTIL_BIN)/test.o $(UTIL_BIN)/fake.o
 INCLUDE += -I$(SRC_INCLUDE) -I$(GEN_INCLUDE)
 
 # The main target for running tests. 
-test: pre_clean test_dirs $(CONFH) $(TEST_OBJS) test_xinu
+test: test_dirs $(CONFH) $(TEST_OBJS) test_xinu
 	@echo Build includes suites: $(TESTS)
 
 test_dirs:
-	@mkdir -p $(TEST_BIN) $(UTIL_BIN) $(GEN_INCLUDE)/test
+	@mkdir -p $(TEST_BIN) $(UTIL_BIN) $(GEN_INCLUDE)/test $(TEST_SRC) $(SRC_CONFIG)
 
 # Rules to compile test utils and the tests themselves.
 $(TEST_BIN)/%.o: $(TEST_SRC)/%.c $(GEN_INCLUDE)/test/fakes.def
@@ -61,8 +61,16 @@ $(GEN_INCLUDE)/test/tests.def: $(UTIL_BIN)/testsym
 	@cat $(UTIL_BIN)/testsym | sed -n 's/^\(test_.*\)/\&\1, /p' >> $@
 	@echo '(struct test_s *) 0};' >> $@
 
+# Copy the fakes config to the include path (dropping the .h to imply this
+# file's dynamic nature. Delete xinu object files to re-link the source with
+# the new fakes.
 $(GEN_INCLUDE)/test/fakes.def: $(SRC_CONFIG)/fakes.def.h
+	@rm $(XINU) $(XINU_BIN) $(XINU_XBIN)
 	@cp $? $@
+
+$(SRC_CONFIG)/fakes.def.h: 
+	@
+	@cp $(UTIL_SRC)/fakes.def.example.h $@
 
 # Find the real names of any wrapped functions (see ld(1)) defined in a test
 # object.
@@ -78,10 +86,6 @@ test_touch_main:
 
 clean_tests:
 	@rm -rf $(GEN_BASE)/* 
-
-pre_clean:
-	@make clean
-	@rm -rf $(UTIL_BIN) $(GEN_INCLUDE)
 
 
 .PHONY: test test_dirs test_xinu clean_tests pre_clean test_touch_main 
