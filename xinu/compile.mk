@@ -65,11 +65,10 @@ $(GEN_INCLUDE)/test/tests.def: $(UTIL_BIN)/testsym
 # file's dynamic nature. Delete xinu object files to re-link the source with
 # the new fakes.
 $(GEN_INCLUDE)/test/fakes.def: $(SRC_CONFIG)/fakes.def.h
-	@rm $(XINU) $(XINU_BIN) $(XINU_XBIN)
+	@rm -f $(XINU) $(XINU_BIN) $(XINU_XBIN)
 	@cp $? $@
 
 $(SRC_CONFIG)/fakes.def.h: 
-	@
 	@cp $(UTIL_SRC)/fakes.def.example.h $@
 
 # Find the real names of any wrapped functions (see ld(1)) defined in a test
