@@ -21,7 +21,7 @@ TESTS := $(foreach test, \
 
 # Determine the object file paths for tests and test utilities.
 TEST_OBJS = $(foreach test,$(TESTS),$(test:%=tests/%.o)) 
-TEST_UTIL_OBJS = $(UTIL_BIN)/test.o $(UTIL_BIN)/fake.o
+TEST_UTIL_OBJS = $(UTIL_BIN)/test.o $(UTIL_BIN)/fake.o $(UTIL_BIN)/hexcmp.o
 
 # Add the test header includes to the include variable used everywhere.
 INCLUDE += -I$(SRC_INCLUDE) -I$(GEN_INCLUDE)

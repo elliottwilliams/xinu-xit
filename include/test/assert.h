@@ -3,6 +3,7 @@
 
 #define _AS_FAILURE_MESSAGE_PRE "in %s:%d: "
 #define _AS_LPAD "    "
+#define _AS_EXPPAD "          "
 #define _AS_FAIL _test_res->status = FAILURE
 #define _as_bprintf(...) sprintf(_msgbuf, __VA_ARGS__)
 
@@ -76,19 +77,39 @@
   }                                                                                                        \
 } while (0);
 
-char * hexdump(void * v, int pad);
-char * hexdump_cmp(void * va, void * vb, int pad);
-#define assert_mem_eq(expected, actual, size) do {                                                         \
-  if (memcmp((expected), (actual), (size)) != 0) {                                                         \
-    _AS_FAIL;                                                                                              \
-    char * exp_s = hexdump((actual), 14);                                                                  \
-    char * dif_s = hexdump((expected), (actual), 14);                                                      \
-    _as_bprintf(                                                                                           \
-        _AS_LPAD _AS_FAILURE_MESSAGE_PRE "assert_mem_eq(" #expected ", " #actual ", " #size ")\n\n"        \
-        _AS_LPAD "Expected: %s\n"                                                                          \
-        _AS_LPAD "     Got: %s\n",                                                                         \
-        __FILE__, __LINE__, exp_s, dif_s);                                                                 \
-  }                                                                                                        \
+// Store in `out` a hex dump of `size` bytes after `va`, highlighting bytes
+// where `va` differs from `vb`. Begin each line with `padstr`.
+void hexcmp(char * out, const char * va, const char * vb, int size, char * padstr);
+int hexcmp_buflen(int size, char * padstr);
+
+#define assert_mem_eq(expected, actual, size) do {                                                  \
+  if (memcmp((expected), (actual), (size)) != 0) {                                                  \
+    _AS_FAIL;                                                                                       \
+    int len = hexcmp_buflen(size, _AS_LPAD _AS_EXPPAD);                                             \
+    char * exp_s = getmem(len);                                                                     \
+    if (exp_s == (char*) SYSERR) exp_s = "<hexcmp error>";                                          \
+    char * act_s = getmem(len);                                                                     \
+    if (act_s == (char*) SYSERR) act_s = "<hexcmp error>";                                          \
+    char * cmp_s = getmem(len);                                                                     \
+    if (cmp_s == (char*) SYSERR) cmp_s = "<hexcmp error>";                                          \
+                                                                                                    \
+    hexcmp(exp_s, (const char *) (expected), (const char *) (expected),                             \
+           (size), _AS_LPAD _AS_EXPPAD);                                                            \
+    hexcmp(act_s, (const char *) (actual), (const char *) (actual),                                 \
+           (size), _AS_LPAD _AS_EXPPAD);                                                            \
+    hexcmp(cmp_s, (const char *) (expected), (const char *) (actual),                               \
+           (size), _AS_LPAD _AS_EXPPAD);                                                            \
+    _as_bprintf(                                                                                    \
+        _AS_LPAD _AS_FAILURE_MESSAGE_PRE "assert_mem_eq(" #expected ", " #actual ", " #size ")\n\n" \
+        _AS_LPAD "Expected: %s\n\n"                                                                 \
+        _AS_LPAD "          to equal\n\n"                                                           \
+        _AS_LPAD "          %s\n\n"                                                                 \
+        _AS_LPAD "     Got: %s\n",                                                                  \
+        __FILE__, __LINE__, exp_s, act_s, cmp_s);                                                   \
+    freemem(exp_s, len);                                                                            \
+    freemem(act_s, len);                                                                            \
+  }                                                                                                 \
 } while (0);
 
 #endif
+
