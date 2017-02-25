@@ -6,9 +6,6 @@
 // characters added.
 #define saprintf(buf, fmt, ...) (buf) += sprintf((buf), (fmt), ##__VA_ARGS__)
 
-// Xinu doesn't globally define a `min` macro
-#define min(a, b) ((a) > (b) ? (b) : (a))
-
 #define COL_INVERT "\x1b[7m"
 #define COL_RESET  "\x1b[0m"
 #define COL_INVERT_LEN strlen(COL_INVERT)
@@ -85,11 +82,11 @@ void hexcmp(char * out, const char * va, const char * vb, int size,
       // ...inverting if the byte is different between `va` and `vb`...
       if (va[r] != vb[r]) {
         sprintf(buf, COL_INVERT "%c" COL_RESET, 
-                isprint(va[r++]) ? va[r-1] : '.');
+                isalnum(va[r++]) ? va[r-1] : '.');
         buf += 1 + COL_INVERT_LEN + COL_RESET_LEN;
       } else {
         sprintf(buf, "%c",
-                isprint(va[r++]) ? va[r-1] : '.');
+                isalnum(va[r++]) ? va[r-1] : '.');
         buf += 1;
       }
     }

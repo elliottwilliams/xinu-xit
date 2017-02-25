@@ -52,7 +52,7 @@ typedef struct runner_s runner_state_t;
   void TEST_F(NAME) (result_t * _test_res, char * _msgbuf)
 
 // Functions called by the test runner.
-process run_test(test_t * test, runner_state_t * state, pid32 parent);
+process run_test(test_t * test, runner_state_t * state);
 
 // The entry point for local testing. Runs a null-terminated list of tests,
 // and calls `handler` as results come in. Passing a NULL `handler` uses a
