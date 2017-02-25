@@ -43,7 +43,7 @@ $(UTIL_BIN)/%.o: $(UTIL_SRC)/%.c $(GEN_INCLUDE)/test/tests.def $(GEN_INCLUDE)/te
 # Keep track of the tests included into this build of Xinu.
 $(UTIL_BIN)/testsym: $(TEST_OBJS)
 	@find $(TEST_BIN) -name \*.o -exec nm {} -g \; | awk 'NF>=3 {print $$3}' \
-		| sort | uniq > $(UTIL_BIN)/testsym
+		> $(UTIL_BIN)/testsym
 
 # Generate command line arguments for ld that wrap functions mocked in tests
 # and test utils. Clean the build, since the OS needs to be relinked to use
@@ -75,7 +75,7 @@ $(SRC_CONFIG)/fakes.def.h:
 # object.
 test_xinu: TEST_REFS = $(TEST_FNS:%=&test_%,)
 test_xinu: TEST_DECLARATIONS = $(TEST_FNS:%=extern test_t test_%;)
-test_xinu: CFLAGS += -DTESTS_ENABLED
+test_xinu: CFLAGS += -DTESTS_ENABLED -DTEST_SRC='"$(TEST_SRC)"'
 test_xinu: OBJ_FILES += $(TEST_OBJS) $(TEST_UTIL_OBJS)
 test_xinu: LDFLAGS += @$(UTIL_BIN)/wrapargs
 test_xinu: $(UTIL_BIN)/wrapargs $(TEST_UTIL_OBJS) test_touch_main xinu 

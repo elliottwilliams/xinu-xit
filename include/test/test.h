@@ -25,13 +25,16 @@ typedef struct test_s test_t;
 
 struct runner_s;
 typedef void (result_handler_f)(test_t * test, struct runner_s * state, char * msg);
+typedef void (stats_handler_f)(struct runner_s * state);
 
 // The state of the test runner, which is shared across the entire test
 // infrastructure.
 struct runner_s {
+  test_t ** tests;
   int n_successes;
   int n_failures;
-  result_handler_f * handler;
+  result_handler_f * result_handler;
+  stats_handler_f * stats_handler;
 };
 typedef struct runner_s runner_state_t;
 
@@ -55,10 +58,12 @@ typedef struct runner_s runner_state_t;
 process run_test(test_t * test, runner_state_t * state);
 
 // The entry point for local testing. Runs a null-terminated list of tests,
-// and calls `handler` as results come in. Passing a NULL `handler` uses a
-// default which prints to stderr.
-void local_runner(test_t ** tests, result_handler_f handler);
+// and calls `result` as results come in. Once testing completes, calls
+// `stats`. Passing a NULL for either handler function uses a default
+// implementation.
+void local_runner(test_t ** tests, result_handler_f result, stats_handler_f stats);
 result_handler_f print_result;
+stats_handler_f print_statistics;
 
 // A xinu process that runs all tests declared by compile-time defines.
 process local_test_runner();
