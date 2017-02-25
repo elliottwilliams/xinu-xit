@@ -12,9 +12,9 @@
     _AS_FAIL;                                                                                              \
     _as_bprintf(                                                                                           \
         _AS_LPAD _AS_FAILURE_MESSAGE_PRE "assert_eq(" #lhs ", " #rhs ")\n\n"                               \
-        _AS_LPAD "Expected: equal\n"                                                                       \
-        _AS_LPAD "     Got: not equal\n",                                                                  \
-        __FILE__, __LINE__);                                                                               \
+        _AS_LPAD "Expected: " #lhs " == 0x%x\n"                                                            \
+        _AS_LPAD "     Got: 0x%x != 0x%x\n",                                                               \
+        __FILE__, __LINE__, (rhs), (lhs), (rhs));                                                          \
     return;                                                                                                \
   }                                                                                                        \
 } while (0);
@@ -24,9 +24,9 @@
     _AS_FAIL;                                                                                              \
     _as_bprintf(                                                                                           \
                  _AS_LPAD _AS_FAILURE_MESSAGE_PRE "assert_neq(" #lhs ", " #rhs ")\n\n"                     \
-                 _AS_LPAD "Expected: not equal\n"                                                          \
-                 _AS_LPAD "     Got: equal\n",                                                             \
-                 __FILE__, __LINE__);                                                                      \
+                 _AS_LPAD "Expected: " #lhs " != 0x%x\n"                                                   \
+                 _AS_LPAD "     Got: 0x%x == 0x%x\n",                                                      \
+                 __FILE__, __LINE__, (rhs), (lhs), (rhs));                                                 \
     return;                                                                                                \
   }                                                                                                        \
 } while (0);
@@ -125,7 +125,7 @@ int hexcmp_buflen(int size, char * padstr);
            (size), _AS_LPAD _AS_EXPPAD);                                                                   \
     _as_bprintf(                                                                                           \
         _AS_LPAD _AS_FAILURE_MESSAGE_PRE "assert_mem_eq(" #expected ", " #actual ", " #size ")\n\n"        \
-        _AS_LPAD "Expected: %s\n"                                                                        \
+        _AS_LPAD "Expected: %s\n"                                                                          \
         _AS_LPAD "          to equal\n\n"                                                                  \
         _AS_LPAD "          %s\n\n"                                                                        \
         _AS_LPAD "     Got: %s\n",                                                                         \
