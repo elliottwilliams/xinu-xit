@@ -3,6 +3,9 @@
 #include <test/test.h>
 #include <test/fake.h>
 
+//#define debug(...) kprintf(__VA_ARGS__)
+#define debug(...)
+
 #include <test/tests.def> 
 extern test_t * all_tests[];
 
@@ -45,15 +48,17 @@ void local_runner(test_t ** tests, result_handler_f * result, stats_handler_f st
 	if (result == NULL)
 		result = &print_result;
 	if (stats == NULL)
-	  stats = &print_statistics;
+		stats = &print_statistics;
 
 	int i = 0;
 	runner_state_t state = { tests, 0, 0, result, stats };
 	for (test_t * it = tests[i]; it != NULL; it = tests[++i]) {
-		pid32 test_pid = create(run_test, INITSTK, INITPRIO, (char *) it->name,
+		debug("running %s...", it->name);
+		pid32 test_pid = create(run_test, INITSTK, INITPRIO, "run_test",
 								2, it, &state);
 
 		// Start the test, and wait for its completion message.
+		debug("resume(test_pid)\n");
 		resume(test_pid);
 
 		// Receive messages until kill() sends us the pid that the test exited,
@@ -61,6 +66,7 @@ void local_runner(test_t ** tests, result_handler_f * result, stats_handler_f st
 		uint32 msg;
 		do msg = recvtime(5000);
 		while (msg != test_pid && msg != TIMEOUT);
+		debug("message received = %d\n", msg);
 
 		// Kill timed-out tests and log their failure.
 		if (msg == TIMEOUT) {
@@ -72,7 +78,7 @@ void local_runner(test_t ** tests, result_handler_f * result, stats_handler_f st
 		reset_fakes();
 	}
 
-  stats(&state);
+	stats(&state);
 }
 
 process local_test_runner() {
