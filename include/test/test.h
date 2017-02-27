@@ -19,7 +19,7 @@ struct test_s {
   void (* after)();
   test_f fn;
   result_t result;
-  int time_ms;
+  uint64 time_ms;
 };
 typedef struct test_s test_t;
 
