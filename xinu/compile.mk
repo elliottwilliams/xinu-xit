@@ -13,22 +13,28 @@ TEST_BIN    := $(GEN_BASE)
 UTIL_BIN    := $(GEN_BASE)/utils
 GEN_INCLUDE := $(GEN_BASE)/include
 
-# Get suite names from c files in TEST_SRC. To only compile certain suites,
-# modify this from the command line, e.g. `make test TESTS=test_netin`.
-TESTS := $(foreach test, \
-	$(shell find $(TEST_SRC) -name *.c), \
-	$(test:$(TEST_SRC)/%.c=%))
+# Include all tests in TEST_SRC matching one of the given patterns. To only
+# compile certain tests, modify this from the command line, e.g. `make test
+# TESTS=unit/net`
+TESTS := '*'
 
-# Determine the object file paths for tests and test utilities.
-TEST_OBJS = $(foreach test,$(TESTS),$(test:%=tests/%.o)) 
+# Determine the object file paths for tests and test utilities. Words in TESTS
+# are used as path selectors for `find`. Tests in TEST_SRC are matched using a
+# selector, and those paths are transformed to the object file path in
+# GEN_BASE.
+TEST_OBJS = $(patsubst $(TEST_SRC)/%.c, $(GEN_BASE)/%.o, \
+						$(shell find $(TEST_SRC) -false \
+						$(TESTS:%=-o -path $(TEST_SRC)/%*.c )))
 TEST_UTIL_OBJS = $(UTIL_BIN)/test.o $(UTIL_BIN)/fake.o $(UTIL_BIN)/hexcmp.o
 
 # Add the test header includes to the include variable used everywhere.
 INCLUDE += -I$(SRC_INCLUDE) -I$(GEN_INCLUDE)
 
 # The main target for running tests. 
-test: test_dirs $(CONFH) $(TEST_OBJS) test_xinu
-	@echo Build includes suites: $(TESTS)
+test: clean_tests test_dirs $(CONFH) $(TEST_OBJS) test_xinu
+	@echo 'Includes all tests matching selector(s): $(TESTS)'
+	@echo -e '\t $(TEST_OBJS:$(GEN_BASE)/%.o=%\n\t)'
+
 
 test_dirs:
 	@mkdir -p $(TEST_BIN) $(UTIL_BIN) $(GEN_INCLUDE)/test $(TEST_SRC) $(SRC_CONFIG)
