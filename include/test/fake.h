@@ -24,5 +24,8 @@ void reset_fakes();
   DEFINE_FAKE_VOID_FUNC(NAME, __VA_ARGS__); \
   NAME##_Fake NAME##_fake = { .custom_fake = PROXY };
 
+#define XIT_REPROXY(NAME, PROXY, ...) \
+  NAME##_fake.custom_fake = PROXY;
+
 XIT_VALUE_FAKES(XIT_DECL_VALUE_FAKE);
 XIT_VOID_FAKES(XIT_DECL_VOID_FAKE);
