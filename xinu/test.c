@@ -6,6 +6,9 @@
 //#define debug(...) kprintf(__VA_ARGS__)
 #define debug(...)
 
+// Forward declaration of private stacktrace function.
+extern syscall stacktrace(int pid);
+
 #include <test/tests.def> 
 extern test_t * all_tests[];
 
@@ -41,6 +44,9 @@ void print_result(test_t * test, runner_state_t * state, char * msg) {
 			kprintf("\n%2d) %s failed:\n%s\n", ++state->n_failures,
 					test->name, msg);
 			break;
+    case TIMEDOUT:
+			kprintf("\n%2d) %s timed out\n", ++state->n_failures, test->name);
+			break;
 	}
 }
 
@@ -54,7 +60,7 @@ void local_runner(test_t ** tests, result_handler_f * result, stats_handler_f st
 	runner_state_t state = { tests, 0, 0, result, stats };
 	for (test_t * it = tests[i]; it != NULL; it = tests[++i]) {
 		debug("running %s...", it->name);
-		pid32 test_pid = create(run_test, INITSTK, INITPRIO, "run_test",
+		pid32 test_pid = create(run_test, INITSTK, INITPRIO, it->name,
 								2, it, &state);
 
 		// Start the test, and wait for its completion message.
@@ -70,9 +76,10 @@ void local_runner(test_t ** tests, result_handler_f * result, stats_handler_f st
 
 		// Kill timed-out tests and log their failure.
 		if (msg == TIMEOUT) {
+		  kprintf("[timeout in %s after 5000ms]\n", it->name);
+		  stacktrace(test_pid);
 			kill(test_pid);
-			it->result.status = FAILURE;
-			result(it, &state, "timeout after 5000ms");
+			it->result.status = TIMEDOUT;
 		}
 
 		reset_fakes();
@@ -120,10 +127,16 @@ void print_statistics(runner_state_t * state) {
     }
 
     // Print test information based on status.
-    if (test->result.status == SUCCESS) {
+    switch (test->result.status) {
+    case SUCCESS:
       kprintf("\x1b[32m  - %s [%dms]", test->name, test->time_ms); // green
-    } else {
+      break;
+    case FAILURE:
       kprintf("\x1b[31m  - %s (FAILED) [%dms]", test->name, test->time_ms); // red
+      break;
+    case TIMEDOUT:
+      kprintf("\x1b[33m  - %s (TIMEOUT)", test->name); // yellow
+      break;
     }
 
     // Reset text color.

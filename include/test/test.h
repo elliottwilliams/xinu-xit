@@ -3,8 +3,8 @@
 
 // Represents the result of a test.
 struct result_s {
-  // TODO - add SKIP, TIMEOUT
-  enum { SUCCESS, FAILURE } status;
+  // TODO - add SKIP
+  enum { SUCCESS, FAILURE, TIMEDOUT } status;
 };
 typedef struct result_s result_t;
 

@@ -1,6 +1,15 @@
 #ifndef ASSERT_H
 #define ASSERT_H
 
+// Forward declaration of assert helpers:
+int	abs(int arg);
+
+// Store in `out` a hex dump of `size` bytes after `va`, highlighting bytes
+// where `va` differs from `vb`. Begin each line with `padstr`.
+void hexcmp(char * out, const char * va, const char * vb, int size, char * padstr);
+int hexcmp_buflen(int size, char * padstr);
+
+
 #define _AS_FAILURE_MESSAGE_PRE "in %s:%d: "
 #define _AS_LPAD "    "
 #define _AS_EXPPAD "          "
@@ -75,6 +84,7 @@
         _AS_LPAD "Expected: true\n"                                                                        \
         _AS_LPAD "     Got: false\n",                                                                      \
         __FILE__, __LINE__);                                                                               \
+    return;                                                                                                \
   }                                                                                                        \
 } while (0);
 
@@ -86,10 +96,11 @@
         _AS_LPAD "Expected: false\n"                                                                       \
         _AS_LPAD "     Got: true\n",                                                                       \
         __FILE__, __LINE__);                                                                               \
+    return;                                                                                                \
   }                                                                                                        \
 } while (0);
 
-#define assert_in_range(expected, actual, tolerance) do {                                                  \
+#define assert_in_range(actual, expected, tolerance) do {                                                  \
   if (abs((expected) - (actual)) > (tolerance)) {                                                          \
     _AS_FAIL;                                                                                              \
     _as_bprintf(                                                                                           \
@@ -98,13 +109,9 @@
         _AS_LPAD "     Got: %d = %d %+d\n",                                                                \
         __FILE__, __LINE__, #expected, (actual), (tolerance), #expected,                                   \
         (actual), ((expected) - (actual)));                                                                \
+    return;                                                                                                \
   }                                                                                                        \
 } while (0);
-
-// Store in `out` a hex dump of `size` bytes after `va`, highlighting bytes
-// where `va` differs from `vb`. Begin each line with `padstr`.
-void hexcmp(char * out, const char * va, const char * vb, int size, char * padstr);
-int hexcmp_buflen(int size, char * padstr);
 
 #define assert_mem_eq(expected, actual, size) do {                                                         \
   if (memcmp((expected), (actual), (size)) != 0) {                                                         \
@@ -132,8 +139,18 @@ int hexcmp_buflen(int size, char * padstr);
         __FILE__, __LINE__, exp_s, act_s, cmp_s);                                                          \
     freemem(exp_s, len);                                                                                   \
     freemem(act_s, len);                                                                                   \
+    return;                                                                                                \
   }                                                                                                        \
 } while (0);
+
+#define assert_fail(message) do {                                                                          \
+  _AS_FAIL;                                                                                                \
+  _as_bprintf(                                                                                             \
+    _AS_LPAD _AS_FAILURE_MESSAGE_PRE "assert(" #message ")\n\n"                                            \
+    __FILE__, __LINE__);                                                                                   \
+  return;                                                                                                  \
+} while (0);
+
 
 #endif
 
