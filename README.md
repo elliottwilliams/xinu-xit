@@ -90,14 +90,30 @@ the behavior of the `gettime` system function.
    and link to the rest of the xinu codebase. Mock functions declared as
    [wraps][wrap] will be discovered automatically by the linker.
 
-2. To run only a subset of your tests, pass a `TESTS` variable containing
-   space-separated suite names to `make`. Suite names correspond to the names
-   of test files without their extension. For example, `tests/test_netin.c` has a
-   suite name of `test_netin`, and could be selected by running:
-
-   ```sh
-   make test TESTS="test_netin"
-   ```
+2. To run only a subset of your tests, run `make` with a `TESTS` variable 
+   containing space-separated paths to match. Paths are matched starting at 
+   the root `tests/` directory. For example, given a `tests` directory:
+   
+      ```
+      tests
+      ├── config
+      │   └── fakes.def.h
+      ├── integration
+      │   └── net
+      │       └── nd_rsol_events.c
+      └── unit
+          ├── net
+          │   ├── colhex2ip.c
+          │   ├── common.c
+          │   ├── common.h
+          │   ├── ...
+          │   └── nd_rsol.c
+          └── system
+              └── defer.c
+      ```
+     Running `make test TESTS=unit/system` builds Xinu with the one test in `tests/unit/system`.  
+     Running `make test TESTS=unit` builds Xinu with all tests in `tests/unit`.  
+     Running `make test TESTS=unit/net/nd_rsol` builds Xinu with just `tests/unit/net/nd_rsol.c`
 
 The resulting `xinu.xbin` image can be used to boot up a Xinu backend as
 usual, and will run all tests specified.
