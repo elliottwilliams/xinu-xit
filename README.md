@@ -1,6 +1,6 @@
 # xit, a unit testing framework for Xinu
 
-xit is a C-based unit testing library for [Xinu][xinu], an
+**xit** ("**xi**nu" + "**t**est") is a C-based unit testing library for [Xinu][xinu], an
 embedded operating system developed at Purdue University. xit provides the
 following functionality:
 
@@ -9,6 +9,8 @@ following functionality:
   reporting.
 - [x] System function mocking through the [fff][fff] library.
 - [x] Cleanup and teardown functions per-test.
+- [x] Time measurement. xit will keep track of how long tests run, and kill
+  tests that take too long.
 - [x] Automatic discovery, compilation, and declaration of tests.
 - [x] Integration into the Xinu compilation infrastructure. (`make test` is all
   you need!)
@@ -24,11 +26,7 @@ Features slated for development:
   coordinated sequence of tests across them.  This should be useful for
   integration testing, where behavior of the entire networking stack is
   observed.
-- [ ] Time measurement. xit will keep track of how long tests run, and kill
-  tests that take too long.
-
-xit is pronounced "exit" and is a portmanteau of "xinu" and "test".
-
+  
 [xinu]: http://www.xinu.cs.purdue.edu
 [lab]: http://www.xinu.cs.purdue.edu/#lab
 
