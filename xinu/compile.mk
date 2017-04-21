@@ -24,7 +24,7 @@ TESTS := '*'
 # GEN_BASE.
 TEST_OBJS = $(patsubst $(TEST_SRC)/%.c, $(GEN_BASE)/%.o, \
 						$(shell find $(TEST_SRC) -false \
-						$(TESTS:%=-o -path $(TEST_SRC)/%*.c )))
+						$(TESTS:%=-o -path '$(TEST_SRC)/%*.c' )))
 TEST_UTIL_OBJS = $(UTIL_BIN)/test.o $(UTIL_BIN)/fake.o $(UTIL_BIN)/hexcmp.o
 
 # Add the test header includes to the include variable used everywhere.
