@@ -76,6 +76,7 @@ int hexcmp_buflen(int size, char * padstr);
   }                                                                                                        \
 } while (0);
 
+#undef assert
 #define assert(cond) do {                                                                                  \
   if (!(cond)) {                                                                                           \
     _AS_FAIL;                                                                                              \
