@@ -41,11 +41,12 @@ void print_result(test_t * test, runner_state_t * state, char * msg) {
 			state->n_successes++;
 			break;
 		case FAILURE:
-			kprintf("\n%2d) %s failed:\n%s\n", ++state->n_failures,
-					test->name, msg);
+      kprintf("\n\x1b[31m%2d) %s failed:\x1b[0m\n%s\n", ++state->n_failures,
+              test->name, msg);
 			break;
     case TIMEDOUT:
-			kprintf("\n%2d) %s timed out\n", ++state->n_failures, test->name);
+      kprintf("\n\x1b[33m%2d) %s timed out\x1b[0m\n", ++state->n_failures,
+              test->name);
 			break;
 	}
 }
