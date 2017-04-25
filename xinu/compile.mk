@@ -84,13 +84,14 @@ test_xinu: TEST_DECLARATIONS = $(TEST_FNS:%=extern test_t test_%;)
 test_xinu: CFLAGS += -DTESTS_ENABLED -DTEST_SRC='"$(TEST_SRC)"'
 test_xinu: OBJ_FILES += $(TEST_OBJS) $(TEST_UTIL_OBJS)
 test_xinu: LDFLAGS += @$(UTIL_BIN)/wrapargs
-test_xinu: $(UTIL_BIN)/wrapargs $(TEST_UTIL_OBJS) test_touch_main xinu 
+test_xinu: $(UTIL_BIN)/wrapargs $(TEST_UTIL_OBJS) touch xinu 
 
-test_touch_main:
+touch:
 	@touch ../system/main.c
+	@touch ../net/net.c
 
 clean_tests:
 	@rm -rf $(GEN_BASE)/* 
 
 
-.PHONY: test test_dirs test_xinu clean_tests pre_clean test_touch_main 
+.PHONY: test test_dirs test_xinu clean_tests pre_clean touch 
